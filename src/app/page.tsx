@@ -1,65 +1,152 @@
-import Image from "next/image";
+"use client"
+
+import { useState } from "react"
+import { Input } from "@/components/ui/input"
+import { Card } from "@/components/ui/card"
+import LibraryButton from "@/components/library-button"
+
+type Book = {
+  id: number
+  title: string
+  author: string
+}
 
 export default function Home() {
+  const [query, setQuery] = useState("")
+  const [title, setTitle] = useState("")
+  const [author, setAuthor] = useState("")
+  const [books, setBooks] = useState<Book[]>([
+  { id: 1, title: "The Great Gatsby", author: "F. Scott Fitzgerald" },
+  { id: 2, title: "To Kill a Mockingbird", author: "Harper Lee" },
+  { id: 3, title: "The Great Gatsby", author: "S. Scott Fitzgerald" },
+  { id: 4, title: "1984", author: "George Orwell" },])
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editTitle, setEditTitle] = useState("")
+  const [editAuthor, setEditAuthor] = useState("")
+
+  const filteredBooks = books.filter(
+    (book) =>
+      book.title.toLowerCase().includes(query.toLowerCase()) ||
+      book.author.toLowerCase().includes(query.toLowerCase())
+  )
+
+  const handleAdd = () => {
+    if (!title || !author) return
+    setBooks([{ id: Date.now(), title, author }, ...books])
+    setTitle("")
+    setAuthor("")
+  }
+
+  const handleRemove = (id: number) => {
+    setBooks(books.filter((book) => book.id !== id))
+  }
+
+  const handleEdit = (book: Book) => {
+    setEditingId(book.id)
+    setEditTitle(book.title)
+    setEditAuthor(book.author)
+  }
+
+  const handleSaveEdit = (id: number) => {
+    if (!editTitle || !editAuthor) return
+    setBooks(
+      books.map((book) =>
+        book.id === id
+          ? { ...book, title: editTitle, author: editAuthor }
+          : book
+      )
+    )
+    setEditingId(null)
+    setEditTitle("")
+    setEditAuthor("")
+  }
+
+  const handleCancelEdit = () => {
+    setEditingId(null)
+    setEditTitle("")
+    setEditAuthor("")
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="max-w-2xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold text-center">
+        Library Management System
+      </h1>
+
+      <Input
+        placeholder="Search by title or author..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+
+      <div className="flex gap-2">
+        <Input
+          placeholder="Book Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+        <Input
+          placeholder="Author"
+          value={author}
+          onChange={(e) => setAuthor(e.target.value)}
+        />
+        <LibraryButton onClick={handleAdd} variant="add">
+          Add Book
+        </LibraryButton>
+      </div>
+
+      {filteredBooks.length === 0 && (
+        <p className="text-center text-gray-500">No books found</p>
+      )}
+
+      <div className="space-y-3">
+        {filteredBooks.map((book) => (
+          <Card key={book.id} className="p-4 flex justify-between items-center">
+            {editingId === book.id ? (
+              <div className="flex gap-2 w-full">
+                <Input
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                />
+                <Input
+                  value={editAuthor}
+                  onChange={(e) => setEditAuthor(e.target.value)}
+                />
+                <LibraryButton
+                  onClick={() => handleSaveEdit(book.id)}
+                  variant="add"
+                >
+                  Save
+                </LibraryButton>
+                <LibraryButton onClick={handleCancelEdit} variant="remove">
+                  Cancel
+                </LibraryButton>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <h2 className="font-semibold">{book.title}</h2>
+                  <p className="text-sm text-gray-600">{book.author}</p>
+                </div>
+                <div className="flex gap-2">
+                  <LibraryButton
+                    onClick={() => handleEdit(book)}
+                    variant="edit"
+                  >
+                    Edit
+                  </LibraryButton>
+                  <LibraryButton
+                    onClick={() => handleRemove(book.id)}
+                    variant="remove"
+                  >
+                    Remove
+                  </LibraryButton>
+                </div>
+              </>
+            )}
+          </Card>
+        ))}
+      </div>
+    </main>
+  )
 }
