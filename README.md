@@ -4,7 +4,7 @@ A modern Library Management System built with **Next.js (App Router)**, **React*
 
 ## 🚀 Live Demo (Vercel)
 
-👉 https://24-bcy-70270-3b-dramane-traore.vercel.app/
+👉 24-bcy-70270-3b-dramane-traore.vercel.app/
 
 ## 📌 Features
 
